@@ -24,6 +24,7 @@ import dehaze
 
 image='images/forrest.jpg'
 image='images/city.jpg'
+image='images/landscape.jpg'
 
 # parameters
 
