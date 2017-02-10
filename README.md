@@ -7,7 +7,7 @@ This is a prototype implementation of automatic single-image haze removal as des
 
 See also comments in `dehaze.py`.
 
-## Expmaples
+## Examples
 
 ### Original image
 
