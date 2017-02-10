@@ -16,3 +16,19 @@ See also comments in `dehaze.py`.
 ### Image after haze removal
 
 ![image after haze removal](https://raw.githubusercontent.com/rabauke/haze_removal/master/images/city_haze_free.jpg)
+
+### Original image
+
+![original image](https://raw.githubusercontent.com/rabauke/haze_removal/master/images/landscape.jpg)
+
+### Image after haze removal
+
+![image after haze removal](https://raw.githubusercontent.com/rabauke/haze_removal/master/images/landscape_haze_free.jpg)
+
+### Original image
+
+![original image](https://raw.githubusercontent.com/rabauke/haze_removal/master/images/forrest.jpg)
+
+### Image after haze removal
+
+![image after haze removal](https://raw.githubusercontent.com/rabauke/haze_removal/master/images/forrest_haze_free.jpg)
