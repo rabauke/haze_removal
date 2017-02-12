@@ -57,7 +57,7 @@ def guidedfilter(I, p, r, eps):
     var_I_gg=         dehaze.boxsum(I[:, :, 1]*I[:, :, 1], r)/N - mean_I_g*mean_I_g + eps
     var_I_gb=var_I_bg=dehaze.boxsum(I[:, :, 1]*I[:, :, 2], r)/N - mean_I_g*mean_I_b
     var_I_bb=         dehaze.boxsum(I[:, :, 2]*I[:, :, 2], r)/N - mean_I_b*mean_I_b + eps
-    a=zeros_like(I)
+    a=empty_like(I)
     for i1 in range(0, N1):
         for i0 in range(0, N0):
             Sigma=array([[ var_I_rr[i0, i1], var_I_rg[i0, i1], var_I_rb[i0, i1] ],
@@ -127,7 +127,7 @@ yticks([])
 tight_layout()
 show(False)
 
-J=zeros_like(I)
+J=empty_like(I)
 J[:, :, 0]=(I[:, :, 0]/t-A0[0]/t+A0[0])
 J[:, :, 1]=(I[:, :, 1]/t-A0[1]/t+A0[1])
 J[:, :, 2]=(I[:, :, 2]/t-A0[2]/t+A0[2])
