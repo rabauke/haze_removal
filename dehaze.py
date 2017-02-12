@@ -40,23 +40,22 @@ strength=0.8
 # He K., Sun J., Tang X. (2010) Guided Image Filtering. In: Daniilidis K., Maragos P., Paragios N. (eds) Computer Vision – ECCV 2010. ECCV 2010. Lecture Notes in Computer Science, vol 6311. Springer, Berlin, Heidelberg
 def guidedfilter(I, p, r, eps):
     N0, N1=I.shape[0:2]
-    N=dehaze.boxsum(ones((N0, N1)), r)
-    mean_I_r=dehaze.boxsum(I[:, :, 0], r)/N
-    mean_I_g=dehaze.boxsum(I[:, :, 1], r)/N
-    mean_I_b=dehaze.boxsum(I[:, :, 2], r)/N
-    mean_p=dehaze.boxsum(p, r)/N
-    mean_Ip_r=dehaze.boxsum(I[:, :, 0]*p, r)/N
-    mean_Ip_g=dehaze.boxsum(I[:, :, 1]*p, r)/N
-    mean_Ip_b=dehaze.boxsum(I[:, :, 2]*p, r)/N
+    mean_I_r=dehaze.box_mean(I[:, :, 0], r)
+    mean_I_g=dehaze.box_mean(I[:, :, 1], r)
+    mean_I_b=dehaze.box_mean(I[:, :, 2], r)
+    mean_p=dehaze.box_mean(p, r)
+    mean_Ip_r=dehaze.box_mean(I[:, :, 0]*p, r)
+    mean_Ip_g=dehaze.box_mean(I[:, :, 1]*p, r)
+    mean_Ip_b=dehaze.box_mean(I[:, :, 2]*p, r)
     cov_Ip_r=mean_Ip_r-mean_I_r*mean_p
     cov_Ip_g=mean_Ip_g-mean_I_g*mean_p
     cov_Ip_b=mean_Ip_b-mean_I_b*mean_p
-    var_I_rr=         dehaze.boxsum(I[:, :, 0]*I[:, :, 0], r)/N - mean_I_r*mean_I_r + eps
-    var_I_rg=var_I_gr=dehaze.boxsum(I[:, :, 0]*I[:, :, 1], r)/N - mean_I_r*mean_I_g
-    var_I_rb=var_I_br=dehaze.boxsum(I[:, :, 0]*I[:, :, 2], r)/N - mean_I_r*mean_I_b
-    var_I_gg=         dehaze.boxsum(I[:, :, 1]*I[:, :, 1], r)/N - mean_I_g*mean_I_g + eps
-    var_I_gb=var_I_bg=dehaze.boxsum(I[:, :, 1]*I[:, :, 2], r)/N - mean_I_g*mean_I_b
-    var_I_bb=         dehaze.boxsum(I[:, :, 2]*I[:, :, 2], r)/N - mean_I_b*mean_I_b + eps
+    var_I_rr=         dehaze.box_mean(I[:, :, 0]*I[:, :, 0], r) - mean_I_r*mean_I_r + eps
+    var_I_rg=var_I_gr=dehaze.box_mean(I[:, :, 0]*I[:, :, 1], r) - mean_I_r*mean_I_g
+    var_I_rb=var_I_br=dehaze.box_mean(I[:, :, 0]*I[:, :, 2], r) - mean_I_r*mean_I_b
+    var_I_gg=         dehaze.box_mean(I[:, :, 1]*I[:, :, 1], r) - mean_I_g*mean_I_g + eps
+    var_I_gb=var_I_bg=dehaze.box_mean(I[:, :, 1]*I[:, :, 2], r) - mean_I_g*mean_I_b
+    var_I_bb=         dehaze.box_mean(I[:, :, 2]*I[:, :, 2], r) - mean_I_b*mean_I_b + eps
     a=empty_like(I)
     for i1 in range(0, N1):
         for i0 in range(0, N0):
@@ -66,10 +65,10 @@ def guidedfilter(I, p, r, eps):
             cov_Ip=array([cov_Ip_r[i0, i1], cov_Ip_g[i0, i1], cov_Ip_b[i0, i1]])
             a[i0, i1, :]=solve(Sigma, cov_Ip)
     b=mean_p - a[:, :, 0]*mean_I_r - a[:, :, 1]*mean_I_g - a[:, :, 2]*mean_I_b
-    q=( dehaze.boxsum(a[:, :, 0], r)*I[:, :, 0] +
-        dehaze.boxsum(a[:, :, 1], r)*I[:, :, 1] +
-        dehaze.boxsum(a[:, :, 2], r)*I[:, :, 2] +
-        dehaze.boxsum(b, r) )/N
+    q=( dehaze.box_mean(a[:, :, 0], r)*I[:, :, 0] +
+        dehaze.box_mean(a[:, :, 1], r)*I[:, :, 1] +
+        dehaze.box_mean(a[:, :, 2], r)*I[:, :, 2] +
+        dehaze.box_mean(b, r) )
     return q
 
 
