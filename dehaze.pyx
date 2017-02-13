@@ -80,7 +80,7 @@ def dark_channel(np.ndarray[np.double_t, ndim=3] I, np.int_t window):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def transition_map(np.ndarray[np.double_t, ndim=3] I, np.ndarray[np.double_t, ndim=1] A0, np.int_t window):
+def transition_map(np.ndarray[np.double_t, ndim=3] I, np.ndarray[np.double_t, ndim=1] A0, np.int_t window, np.double_t strength):
     cdef int N0=I.shape[0]
     cdef int N1=I.shape[1]
     cdef int i0, i1
@@ -105,7 +105,7 @@ def transition_map(np.ndarray[np.double_t, ndim=3] I, np.ndarray[np.double_t, nd
                     f=I[j0, j1, 2]/A0[2]
                     if f<m:
                         m=f;
-            t[i0, i1]=1.-0.95*m
+            t[i0, i1]=1.-strength*m
 
     return t
 

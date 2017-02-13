@@ -32,8 +32,8 @@ image='images/landscape.jpg'
 w=4
 # window size (positive integer) for guided filter
 w2=3*w
-# strength of the dahazing effect 0 <= stength <= 1 (is one in the original paper)
-strength=0.8
+# strength of the dahazing effect 0 <= stength <= 1 (is 0.95 in the original paper)
+strength=0.85
 
 
 # guided image filter as decribed in
@@ -105,7 +105,7 @@ In=sum(I, axis=2)/3
 
 k0, k1=np.unravel_index(argmax(haze_pixel*In), In.shape)
 A0=I[k0, k1, :]
-t=dehaze.transition_map(I, A0, w)
+t=dehaze.transition_map(I, A0, w, strength)
 figure()
 io.imshow(t)
 title('transition map')
@@ -116,7 +116,6 @@ show(False)
 
 t=dehaze.min_filter(t, w)
 t=guidedfilter(I, t, w2, 0.001)
-t=1+strength*(t-1)
 t[t<0.025]=0.025
 figure()
 io.imshow(t)
