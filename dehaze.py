@@ -20,7 +20,7 @@ from skimage import data, io, exposure, img_as_float
 # first compile dehaze module with
 # python3 setup.py build_ext --inplace
 import dehaze
-
+from timeit import default_timer as timer
 
 image='images/forrest.jpg'
 image='images/city.jpg'

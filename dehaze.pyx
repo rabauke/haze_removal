@@ -31,8 +31,9 @@ def box_mean(np.ndarray[np.double_t, ndim=2] x, np.int_t w):
     cdef np.ndarray[np.double_t, ndim=1] y_bak
     for i0 in range(0, N0):
         box_mean_1d_inplace(x[i0, :], y[i0, :], w)
+    y_bak=np.empty([N0], dtype=np.double)
     for i1 in range(0, N1):
-        y_bak=y[:, i1].copy()
+        y_bak[:]=y[:, i1].copy()
         box_mean_1d_inplace(y_bak, y[:, i1], w)
     return y
 
@@ -66,8 +67,9 @@ def box_max(np.ndarray[np.double_t, ndim=2] x, np.int_t w):
     cdef np.ndarray[np.double_t, ndim=1] y_bak
     for i0 in range(0, N0):
         box_max_1d_inplace(x[i0, :], y[i0, :], w)
+    y_bak=np.empty([N0], dtype=np.double)
     for i1 in range(0, N1):
-        y_bak=y[:, i1].copy()
+        y_bak[:]=y[:, i1].copy()
         box_max_1d_inplace(y_bak, y[:, i1], w)
     return y
 
@@ -109,29 +111,29 @@ def box_min(np.ndarray[np.double_t, ndim=2] x, np.int_t w):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def dark_channel(np.ndarray[np.double_t, ndim=3] I, np.int_t window):
+def dark_channel(np.ndarray[np.double_t, ndim=3] I, np.int_t w):
     cdef int N0=I.shape[0]
     cdef int N1=I.shape[1]
     cdef int i0, i1
-    cdef int j0, j0_s, j0_end, j1, j1_s, j1_end
     cdef double m
     cdef np.ndarray[np.double_t, ndim=2] dark=np.empty([N0, N1], dtype=np.double)
+    cdef np.ndarray[np.double_t, ndim=1] dark_bak
     for i1 in range(0, N1):
-        j1_s=max(0, i1-window)
-        j1_end=min(i1+window+1, N1)
         for i0 in range(0, N0):
-            j0_s=max(0, i0-window)
-            j0_end=min(i0+window+1, N0)
             m=I[i0, i1, 0]
-            for j1 in range(j1_s, j1_end):
-                for j0 in range(j0_s, j0_end):
-                    if I[j0, j1, 0]<m:
-                        m=I[j0, j1, 0]
-                    if I[j0, j1, 1]<m:
-                        m=I[j0, j1, 1]
-                    if I[j0, j1, 2]<m:
-                        m=I[j0, j1, 2]
+            if I[i0, i1, 1]<m:
+                m=I[i0, i1, 1]
+            if I[i0, i1, 2]<m:
+                m=I[i0, i1, 2]
             dark[i0, i1]=m
+    dark_bak=np.empty([N1], dtype=np.double)
+    for i0 in range(0, N0):
+        dark_bak[:]=dark[i0, :].copy()
+        box_min_1d_inplace(dark_bak, dark[i0, :], w)
+    dark_bak=np.empty([N0], dtype=np.double)
+    for i1 in range(0, N1):
+        dark_bak[:]=dark[:, i1].copy()
+        box_min_1d_inplace(dark_bak, dark[:, i1], w)
     return dark
 
 
