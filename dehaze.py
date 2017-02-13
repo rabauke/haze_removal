@@ -114,7 +114,7 @@ yticks([])
 tight_layout()
 show(False)
 
-t=dehaze.min_filter(t, w)
+t=dehaze.box_min(t, w)
 t=guidedfilter(I, t, w2, 0.001)
 t[t<0.025]=0.025
 figure()
@@ -125,10 +125,11 @@ yticks([])
 tight_layout()
 show(False)
 
-J=empty_like(I)
-J[:, :, 0]=(I[:, :, 0]/t-A0[0]/t+A0[0])
-J[:, :, 1]=(I[:, :, 1]/t-A0[1]/t+A0[1])
-J[:, :, 2]=(I[:, :, 2]/t-A0[2]/t+A0[2])
+J=I/t[:, :, np.newaxis] - A0[np.newaxis, np.newaxis, :]/t[:, :, np.newaxis] + A0
+# J=empty_like(I)
+# J[:, :, 0]=(I[:, :, 0]/t-A0[0]/t+A0[0])
+# J[:, :, 1]=(I[:, :, 1]/t-A0[1]/t+A0[1])
+# J[:, :, 2]=(I[:, :, 2]/t-A0[2]/t+A0[2])
 J[J<0]=0
 J[J>1]=1
 
