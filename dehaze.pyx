@@ -139,37 +139,34 @@ def dark_channel(np.ndarray[np.double_t, ndim=3] I, np.int_t w):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def transition_map(np.ndarray[np.double_t, ndim=3] I, np.ndarray[np.double_t, ndim=1] A0, np.int_t window, np.double_t strength):
+def transition_map(np.ndarray[np.double_t, ndim=3] I, np.ndarray[np.double_t, ndim=1] A0, np.int_t w, np.double_t strength):
     cdef int N0=I.shape[0]
     cdef int N1=I.shape[1]
     cdef int i0, i1
-    cdef int j0, j0_s, j0_end, j1, j1_s, j1_end
     cdef double m, f
     cdef np.ndarray[np.float64_t, ndim=2] t=np.empty([N0, N1], dtype=np.float64)
     for i1 in range(0, N1):
-        j1_s=max(0, i1-window)
-        j1_end=min(i1+window+1, N1)
         for i0 in range(0, N0):
-            j0_s=max(0, i0-window)
-            j0_end=min(i0+window+1, N0)
             m=I[i0, i1, 0]/A0[0]
-            for j1 in range(j1_s, j1_end):
-                for j0 in range(j0_s, j0_end):
-                    f=I[j0, j1, 0]/A0[0]
-                    if f<m:
-                        m=f;
-                    f=I[j0, j1, 1]/A0[1]
-                    if f<m:
-                        m=f;
-                    f=I[j0, j1, 2]/A0[2]
-                    if f<m:
-                        m=f;
+            f=I[i0, i1, 1]/A0[1]
+            if f<m:
+                m=f
+            f=I[i0, i1, 2]/A0[2]
+            if f<m:
+                m=f
             t[i0, i1]=1.-strength*m
-
+    t_bak=np.empty([N1], dtype=np.double)
+    for i0 in range(0, N0):
+        t_bak[:]=t[i0, :].copy()
+        box_max_1d_inplace(t_bak, t[i0, :], w)
+    t_bak=np.empty([N0], dtype=np.double)
+    for i1 in range(0, N1):
+        t_bak[:]=t[:, i1].copy()
+        box_max_1d_inplace(t_bak, t[:, i1], w)
     return t
 
 
-# guided image filter as decribed in
+# guided image filter as described in
 # He K., Sun J., Tang X. (2010) Guided Image Filtering. In: Daniilidis K., Maragos P., Paragios N. (eds) Computer Vision – ECCV 2010. ECCV 2010. Lecture Notes in Computer Science, vol 6311. Springer, Berlin, Heidelberg
 @cython.boundscheck(False)
 @cython.wraparound(False)
