@@ -53,9 +53,8 @@ def box_max_1d_inplace(np.ndarray[np.double_t, ndim=1] x, np.ndarray[np.double_t
             m=-inf
             for j in range(max(i-w+1, 0), min(i+w+2, N)):
                 m=x[j] if x[j]>m else m
-        else:
-            if i+w+1<N:
-                m=x[i+w+1] if x[i+w+1]>m else m
+        if i+w+1<N:
+            m=x[i+w+1] if x[i+w+1]>m else m
 
 
 @cython.boundscheck(False)
@@ -89,9 +88,8 @@ def box_min_1d_inplace(np.ndarray[np.double_t, ndim=1] x, np.ndarray[np.double_t
             m=inf
             for j in range(max(i-w+1, 0), min(i+w+2, N)):
                 m=x[j] if x[j]<m else m
-        else:
-            if i+w+1<N:
-                m=x[i+w+1] if x[i+w+1]<m else m
+        if i+w+1<N:
+            m=x[i+w+1] if x[i+w+1]<m else m
 
 
 @cython.boundscheck(False)
@@ -171,73 +169,69 @@ def transition_map(np.ndarray[np.double_t, ndim=3] I, np.ndarray[np.double_t, nd
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-def guidedfilter(np.ndarray[np.double_t, ndim=3] I, np.ndarray[np.double_t, ndim=2] p, np.int_t r, np.double_t eps):
-    cdef int N0=I.shape[0]
-    cdef int N1=I.shape[1]
+def guidedfilter(np.ndarray[np.double_t, ndim=3] imgg, np.ndarray[np.double_t, ndim=2] img, np.int_t w, np.double_t eps):
+    cdef int N0=imgg.shape[0]
+    cdef int N1=imgg.shape[1]
     cdef int i0, i1
-    cdef np.ndarray[np.double_t, ndim=2] mean_I_r, mean_I_g, mean_I_b
-    cdef np.ndarray[np.double_t, ndim=2] mean_p
-    cdef np.ndarray[np.double_t, ndim=2] mean_Ip_r, mean_Ip_g, mean_Ip_b
-    cdef np.ndarray[np.double_t, ndim=2] var_I_rr, var_I_rg, var_I_rb
-    cdef np.ndarray[np.double_t, ndim=2] var_I_gr, var_I_gg, var_I_gb
-    cdef np.ndarray[np.double_t, ndim=2] var_I_br, var_I_bg, var_I_bb
-    cdef np.ndarray[np.double_t, ndim=2] cov_Ip_r, cov_Ip_g, cov_Ip_b
+    cdef np.ndarray[np.double_t, ndim=2] imgg_mean_r, imgg_mean_g, imgg_mean_b
+    cdef np.ndarray[np.double_t, ndim=2] img_mean
+    cdef np.ndarray[np.double_t, ndim=2] cov_imgg_img_r, cov_imgg_img_g, cov_imgg_img_b
+    cdef np.ndarray[np.double_t, ndim=2] var_imgg_rr, var_imgg_rg, var_imgg_rb
+    cdef np.ndarray[np.double_t, ndim=2] var_imgg_gr, var_imgg_gg, var_imgg_gb
+    cdef np.ndarray[np.double_t, ndim=2] var_imgg_br, var_imgg_bg, var_imgg_bb
     cdef np.ndarray[np.double_t, ndim=3] a
     cdef np.ndarray[np.double_t, ndim=2] Sigma
-    cdef np.ndarray[np.double_t, ndim=1] cov_Ip
+    cdef np.ndarray[np.double_t, ndim=1] cov_imgg_img
     cdef np.ndarray[np.double_t, ndim=2] q
     cdef np.double_t det0, det1, det2, det3
-    mean_I_r=box_mean(I[:, :, 0], r)
-    mean_I_g=box_mean(I[:, :, 1], r)
-    mean_I_b=box_mean(I[:, :, 2], r)
-    mean_p=box_mean(p, r)
-    mean_Ip_r=box_mean(I[:, :, 0]*p, r)
-    mean_Ip_g=box_mean(I[:, :, 1]*p, r)
-    mean_Ip_b=box_mean(I[:, :, 2]*p, r)
-    cov_Ip_r=mean_Ip_r-mean_I_r*mean_p
-    cov_Ip_g=mean_Ip_g-mean_I_g*mean_p
-    cov_Ip_b=mean_Ip_b-mean_I_b*mean_p
-    var_I_rr=         box_mean(I[:, :, 0]*I[:, :, 0], r) - mean_I_r*mean_I_r + eps
-    var_I_rg=var_I_gr=box_mean(I[:, :, 0]*I[:, :, 1], r) - mean_I_r*mean_I_g
-    var_I_rb=var_I_br=box_mean(I[:, :, 0]*I[:, :, 2], r) - mean_I_r*mean_I_b
-    var_I_gg=         box_mean(I[:, :, 1]*I[:, :, 1], r) - mean_I_g*mean_I_g + eps
-    var_I_gb=var_I_bg=box_mean(I[:, :, 1]*I[:, :, 2], r) - mean_I_g*mean_I_b
-    var_I_bb=         box_mean(I[:, :, 2]*I[:, :, 2], r) - mean_I_b*mean_I_b + eps
-    a=np.empty_like(I)
+    imgg_mean_r=box_mean(imgg[:, :, 0], w)
+    imgg_mean_g=box_mean(imgg[:, :, 1], w)
+    imgg_mean_b=box_mean(imgg[:, :, 2], w)
+    img_mean=box_mean(img, w)
+    cov_imgg_img_r=box_mean(imgg[:, :, 0]*img, w) - imgg_mean_r*img_mean
+    cov_imgg_img_g=box_mean(imgg[:, :, 1]*img, w) - imgg_mean_g*img_mean
+    cov_imgg_img_b=box_mean(imgg[:, :, 2]*img, w) - imgg_mean_b*img_mean
+    var_imgg_rr=            box_mean(imgg[:, :, 0]*imgg[:, :, 0], w) - imgg_mean_r*imgg_mean_r + eps
+    var_imgg_rg=var_imgg_gr=box_mean(imgg[:, :, 0]*imgg[:, :, 1], w) - imgg_mean_r*imgg_mean_g
+    var_imgg_rb=var_imgg_br=box_mean(imgg[:, :, 0]*imgg[:, :, 2], w) - imgg_mean_r*imgg_mean_b
+    var_imgg_gg=            box_mean(imgg[:, :, 1]*imgg[:, :, 1], w) - imgg_mean_g*imgg_mean_g + eps
+    var_imgg_gb=var_imgg_bg=box_mean(imgg[:, :, 1]*imgg[:, :, 2], w) - imgg_mean_g*imgg_mean_b
+    var_imgg_bb=            box_mean(imgg[:, :, 2]*imgg[:, :, 2], w) - imgg_mean_b*imgg_mean_b + eps
+    a=np.empty_like(imgg)
     Sigma=np.empty((3, 3))
-    cov_Ip=np.empty(3)
+    cov_imgg_img=np.empty(3)
     for i0 in range(0, N0):
         for i1 in range(0, N1):
-            Sigma[0, 0]=var_I_rr[i0, i1]
-            Sigma[0, 1]=var_I_rg[i0, i1]
-            Sigma[0, 2]=var_I_rb[i0, i1]
-            Sigma[1, 0]=var_I_gr[i0, i1]
-            Sigma[1, 1]=var_I_gg[i0, i1]
-            Sigma[1, 2]=var_I_gb[i0, i1]
-            Sigma[2, 0]=var_I_br[i0, i1]
-            Sigma[2, 1]=var_I_bg[i0, i1]
-            Sigma[2, 2]=var_I_bb[i0, i1]
-            cov_Ip[0]=cov_Ip_r[i0, i1]
-            cov_Ip[1]=cov_Ip_g[i0, i1]
-            cov_Ip[2]=cov_Ip_b[i0, i1]
+            Sigma[0, 0]=var_imgg_rr[i0, i1]
+            Sigma[0, 1]=var_imgg_rg[i0, i1]
+            Sigma[0, 2]=var_imgg_rb[i0, i1]
+            Sigma[1, 0]=var_imgg_gr[i0, i1]
+            Sigma[1, 1]=var_imgg_gg[i0, i1]
+            Sigma[1, 2]=var_imgg_gb[i0, i1]
+            Sigma[2, 0]=var_imgg_br[i0, i1]
+            Sigma[2, 1]=var_imgg_bg[i0, i1]
+            Sigma[2, 2]=var_imgg_bb[i0, i1]
+            cov_imgg_img[0]=cov_imgg_img_r[i0, i1]
+            cov_imgg_img[1]=cov_imgg_img_g[i0, i1]
+            cov_imgg_img[2]=cov_imgg_img_b[i0, i1]
             det0=Sigma[0, 0]*(Sigma[1, 1]*Sigma[2, 2]-Sigma[2, 1]*Sigma[1, 2]) \
                   -Sigma[0, 1]*(Sigma[1, 0]*Sigma[2, 2]-Sigma[2, 0]*Sigma[1, 2]) \
-                  +Sigma[0, 2]*(Sigma[1, 0]*Sigma[2, 1]-Sigma[2, 0]*Sigma[1, 1]) 
-            det1=cov_Ip[0]*(Sigma[1, 1]*Sigma[2, 2]-Sigma[2, 1]*Sigma[1, 2]) \
-                  -Sigma[0, 1]*(cov_Ip[1]*Sigma[2, 2]-cov_Ip[2]*Sigma[1, 2]) \
-                  +Sigma[0, 2]*(cov_Ip[1]*Sigma[2, 1]-cov_Ip[2]*Sigma[1, 1])
-            det2=Sigma[0, 0]*(cov_Ip[1]*Sigma[2, 2]-cov_Ip[2]*Sigma[1, 2]) \
-                  -cov_Ip[0]*(Sigma[1, 0]*Sigma[2, 2]-Sigma[2, 0]*Sigma[1, 2]) \
-                  +Sigma[0, 2]*(Sigma[1, 0]*cov_Ip[2]-Sigma[2, 0]*cov_Ip[1]) 
-            det3=Sigma[0, 0]*(Sigma[1, 1]*cov_Ip[2]-Sigma[2, 1]*cov_Ip[1]) \
-                  -Sigma[0, 1]*(Sigma[1, 0]*cov_Ip[2]-Sigma[2, 0]*cov_Ip[1]) \
-                  +cov_Ip[0]*(Sigma[1, 0]*Sigma[2, 1]-Sigma[2, 0]*Sigma[1, 1])
+                  +Sigma[0, 2]*(Sigma[1, 0]*Sigma[2, 1]-Sigma[2, 0]*Sigma[1, 1])
+            det1=cov_imgg_img[0]*(Sigma[1, 1]*Sigma[2, 2]-Sigma[2, 1]*Sigma[1, 2]) \
+                  -Sigma[0, 1]*(cov_imgg_img[1]*Sigma[2, 2]-cov_imgg_img[2]*Sigma[1, 2]) \
+                  +Sigma[0, 2]*(cov_imgg_img[1]*Sigma[2, 1]-cov_imgg_img[2]*Sigma[1, 1])
+            det2=Sigma[0, 0]*(cov_imgg_img[1]*Sigma[2, 2]-cov_imgg_img[2]*Sigma[1, 2]) \
+                  -cov_imgg_img[0]*(Sigma[1, 0]*Sigma[2, 2]-Sigma[2, 0]*Sigma[1, 2]) \
+                  +Sigma[0, 2]*(Sigma[1, 0]*cov_imgg_img[2]-Sigma[2, 0]*cov_imgg_img[1])
+            det3=Sigma[0, 0]*(Sigma[1, 1]*cov_imgg_img[2]-Sigma[2, 1]*cov_imgg_img[1]) \
+                  -Sigma[0, 1]*(Sigma[1, 0]*cov_imgg_img[2]-Sigma[2, 0]*cov_imgg_img[1]) \
+                  +cov_imgg_img[0]*(Sigma[1, 0]*Sigma[2, 1]-Sigma[2, 0]*Sigma[1, 1])
             a[i0, i1, 0]=det1/det0
             a[i0, i1, 1]=det2/det0
             a[i0, i1, 2]=det3/det0
-    b=mean_p - a[:, :, 0]*mean_I_r - a[:, :, 1]*mean_I_g - a[:, :, 2]*mean_I_b
-    q=( box_mean(a[:, :, 0], r)*I[:, :, 0] +
-        box_mean(a[:, :, 1], r)*I[:, :, 1] +
-        box_mean(a[:, :, 2], r)*I[:, :, 2] +
-        box_mean(b, r) )
+    b=img_mean - a[:, :, 0]*imgg_mean_r - a[:, :, 1]*imgg_mean_g - a[:, :, 2]*imgg_mean_b
+    q=( box_mean(a[:, :, 0], w)*imgg[:, :, 0] +
+        box_mean(a[:, :, 1], w)*imgg[:, :, 1] +
+        box_mean(a[:, :, 2], w)*imgg[:, :, 2] +
+        box_mean(b, w) )
     return q
