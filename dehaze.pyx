@@ -217,18 +217,23 @@ def guidedfilter(np.ndarray[np.double_t, ndim=3] imgg, np.ndarray[np.double_t, n
             det0=Sigma[0, 0]*(Sigma[1, 1]*Sigma[2, 2]-Sigma[2, 1]*Sigma[1, 2]) \
                   -Sigma[0, 1]*(Sigma[1, 0]*Sigma[2, 2]-Sigma[2, 0]*Sigma[1, 2]) \
                   +Sigma[0, 2]*(Sigma[1, 0]*Sigma[2, 1]-Sigma[2, 0]*Sigma[1, 1])
-            det1=cov_imgg_img[0]*(Sigma[1, 1]*Sigma[2, 2]-Sigma[2, 1]*Sigma[1, 2]) \
-                  -Sigma[0, 1]*(cov_imgg_img[1]*Sigma[2, 2]-cov_imgg_img[2]*Sigma[1, 2]) \
-                  +Sigma[0, 2]*(cov_imgg_img[1]*Sigma[2, 1]-cov_imgg_img[2]*Sigma[1, 1])
-            det2=Sigma[0, 0]*(cov_imgg_img[1]*Sigma[2, 2]-cov_imgg_img[2]*Sigma[1, 2]) \
-                  -cov_imgg_img[0]*(Sigma[1, 0]*Sigma[2, 2]-Sigma[2, 0]*Sigma[1, 2]) \
-                  +Sigma[0, 2]*(Sigma[1, 0]*cov_imgg_img[2]-Sigma[2, 0]*cov_imgg_img[1])
-            det3=Sigma[0, 0]*(Sigma[1, 1]*cov_imgg_img[2]-Sigma[2, 1]*cov_imgg_img[1]) \
-                  -Sigma[0, 1]*(Sigma[1, 0]*cov_imgg_img[2]-Sigma[2, 0]*cov_imgg_img[1]) \
-                  +cov_imgg_img[0]*(Sigma[1, 0]*Sigma[2, 1]-Sigma[2, 0]*Sigma[1, 1])
-            a[i0, i1, 0]=det1/det0
-            a[i0, i1, 1]=det2/det0
-            a[i0, i1, 2]=det3/det0
+            if 1e-12<det0 and det0<1e-12:
+                a[i0, i1, 0]=0
+                a[i0, i1, 1]=0
+                a[i0, i1, 2]=0
+            else:
+                det1=cov_imgg_img[0]*(Sigma[1, 1]*Sigma[2, 2]-Sigma[2, 1]*Sigma[1, 2]) \
+                      -Sigma[0, 1]*(cov_imgg_img[1]*Sigma[2, 2]-cov_imgg_img[2]*Sigma[1, 2]) \
+                      +Sigma[0, 2]*(cov_imgg_img[1]*Sigma[2, 1]-cov_imgg_img[2]*Sigma[1, 1])
+                det2=Sigma[0, 0]*(cov_imgg_img[1]*Sigma[2, 2]-cov_imgg_img[2]*Sigma[1, 2]) \
+                      -cov_imgg_img[0]*(Sigma[1, 0]*Sigma[2, 2]-Sigma[2, 0]*Sigma[1, 2]) \
+                      +Sigma[0, 2]*(Sigma[1, 0]*cov_imgg_img[2]-Sigma[2, 0]*cov_imgg_img[1])
+                det3=Sigma[0, 0]*(Sigma[1, 1]*cov_imgg_img[2]-Sigma[2, 1]*cov_imgg_img[1]) \
+                      -Sigma[0, 1]*(Sigma[1, 0]*cov_imgg_img[2]-Sigma[2, 0]*cov_imgg_img[1]) \
+                      +cov_imgg_img[0]*(Sigma[1, 0]*Sigma[2, 1]-Sigma[2, 0]*Sigma[1, 1])
+                a[i0, i1, 0]=det1/det0
+                a[i0, i1, 1]=det2/det0
+                a[i0, i1, 2]=det3/det0
     b=img_mean - a[:, :, 0]*imgg_mean_r - a[:, :, 1]*imgg_mean_g - a[:, :, 2]*imgg_mean_b
     q=( box_mean(a[:, :, 0], w)*imgg[:, :, 0] +
         box_mean(a[:, :, 1], w)*imgg[:, :, 1] +
