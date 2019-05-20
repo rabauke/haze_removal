@@ -32,8 +32,10 @@ w=4
 # window size (positive integer) for guided filter
 w2=3*w
 # strength of the dahazing effect 0 <= stength <= 1 (is 0.95 in the original paper)
-strength=0.90
+strength=0.99
 
+# gamma correction, algorithm should work in linear RGB space
+gamma=2.2
 
 close('all')
 
@@ -46,9 +48,11 @@ yticks([])
 tight_layout()
 show(False)
 
+I=I**gamma
+
 dark=dehaze.dark_channel(I, w)
 figure()
-io.imshow(dark)
+imshow(dark, cmap='Greys')
 title('dark channel')
 xticks([])
 yticks([])
@@ -72,7 +76,7 @@ A0=mean(I[logical_and(haze_pixel, bright_pixel), :], axis=0)
 
 t=dehaze.transition_map(I, A0, w, strength)
 figure()
-io.imshow(t)
+imshow(t, cmap='Greys')
 title('transition map')
 xticks([])
 yticks([])
@@ -83,7 +87,7 @@ t=dehaze.box_min(t, w)
 t=dehaze.guidedfilter(I, t, w2, 0.001)
 t[t<0.025]=0.025
 figure()
-io.imshow(t)
+imshow(t, cmap='Greys')
 title('refined transition map')
 xticks([])
 yticks([])
@@ -98,8 +102,10 @@ J=I/t[:, :, np.newaxis] - A0[np.newaxis, np.newaxis, :]/t[:, :, np.newaxis] + A0
 J[J<0]=0
 J[J>1]=1
 
+J=J**(1/gamma)
+
 figure()
-io.imshow(J)
+imshow(J)
 title('haze-free image')
 xticks([])
 yticks([])
